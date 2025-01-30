@@ -1,0 +1,23 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="Link">
+    <output-path>$PROJECT_DIR$/out/artifacts/Link</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="LinkBrowser" />
+        <option name="description" value="Java Web Browser" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="msgOutputLevel" value="Verbose" />
+        <option name="nativeBundle" value="exe" />
+        <option name="title" value="Link" />
+        <option name="vendor" value="Kobi401, Im_Owen25" />
+        <option name="version" value="Prototype" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="Link.jar">
+        <element id="module-output" name="Link" />
+      </element>
+      <element id="library" level="project" name="bin" />
+    </root>
+  </artifact>
+</component>

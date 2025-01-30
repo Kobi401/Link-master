@@ -1,0 +1,137 @@
+.text-field {
+    -fx-padding: 5px;
+    -fx-font-size: 14px;
+}
+
+.web-view {
+    -fx-border-color: #e1e1e1;
+}
+
+/* Top Bar */
+.top-bar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 5 20 5 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1);
+}
+
+/* User Label */
+.user-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #333333;
+}
+
+/* Browser Name Label */
+.browser-name-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+/* Version Label */
+.version-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+}
+
+/* Center Container */
+.center-container {
+    /* Center alignment handled by parent HBox */
+}
+
+/* Center Container */
+.center-container {
+    /* Center alignment handled by parent HBox */
+}
+
+/* Left Container */
+.left-container {
+    /* Additional styles if needed */
+}
+
+/* Right Container */
+.right-container {
+    /* Additional styles if needed */
+}
+
+/* Window Controls */
+.window-controls {
+    /* Transparent background to blend with top bar */
+    -fx-background-color: transparent;
+}
+
+/* Window Control Buttons */
+.window-control-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    /* Reduced padding for smaller buttons */
+    -fx-padding: 3;
+    /* Optional: Set preferred size */
+    -fx-pref-width: 30px;
+    -fx-pref-height: 20px;
+}
+
+/* Transition for SVG icons */
+.svg-icon {
+    -fx-transition: -fx-fill 0.3s;
+    /* Further reduced scaling for smaller icons */
+    -fx-scale-x: 0.7;
+    -fx-scale-y: 0.7;
+    /* Adjust stroke width for clarity */
+    -fx-stroke-width: 0.5px;
+}
+
+/* Window Control Buttons Hover Effects */
+.window-control-button:hover .svg-icon {
+    /* Default hover color */
+    -fx-fill: #333333;
+}
+
+/* Specific Hover Colors */
+.minimize-button:hover .svg-icon {
+    -fx-fill: #ffbd2e; /* Gold color */
+}
+
+.maximize-button:hover .svg-icon {
+    -fx-fill: #27c93f; /* Green color */
+}
+
+.close-button:hover .svg-icon {
+    -fx-fill: #ff5f56; /* Red color */
+}
+
+/* Tab Pane */
+.tab-pane {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 5 5 0 0;
+    -fx-padding: 5 10 5 10;
+    -fx-spacing: 3;
+    -fx-font-size: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 1, 0, 0, 1);
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1px 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 2, 0, 0, 1);
+}
+
+.dark-mode .root {
+    -fx-background-color: #2e2e2e;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-mode .search-bar {
+    -fx-background-color: #3c3c3c;
+}
+
+.dark-mode .button .svg-icon {
+    -fx-fill: #ffffff;
+}

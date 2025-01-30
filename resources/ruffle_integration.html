@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruffle Flash Integration</title>
+    <!-- Load Ruffle from a CDN for better reliability -->
+    <script src="ruffle/ruffle.js"></script>
+    <style>
+        .flash-container {
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+<script>
+    window.addEventListener('load', () => {
+        const ruffle = window.RufflePlayer.newest();
+        const flashObjects = document.querySelectorAll("object[data$='.swf'], embed[src$='.swf']");
+        flashObjects.forEach((flashObject) => {
+            const player = ruffle.createPlayer();
+            const parent = flashObject.parentElement;
+            parent.replaceChild(player, flashObject);
+            player.load(flashObject.data || flashObject.src);
+        });
+    });
+</script>
+</body>
+</html>

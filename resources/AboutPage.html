@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>About Link Browser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1e1e1e;
+            color: #ddd;
+        }
+        h1, h2 {
+            background: linear-gradient(90deg, #42a5f5, #ff7043); /* Brighter Chrome and Firefox colors */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6); /* Light shadow for brighter look */
+        }
+        p, li, h3 {
+            color: #bbb;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        .button {
+            background-color: #5a5a5a;
+            color: white;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #777;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+        .system-info, .license-info, .libraries-used {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid #555;
+        }
+        a, a:visited {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: #222;
+            padding: 10px 20px;
+            border-bottom: 1px solid #444;
+        }
+        .nav-bar h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #f1c40f;
+        }
+        .nav-bar .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-bar .nav-buttons .button {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+    </style>
+    <script>
+        function showSystemInfo() {
+            const userAgent = navigator.userAgent;
+            const linkBrowserVersion = "Prototype";
+            const buildDate = "2024-09-29"; //Remember to update this
+
+
+            document.getElementById('os-info').textContent = "Operating System: " + navigator.platform;
+            document.getElementById('user-agent').textContent = "User-Agent: " + userAgent;
+            document.getElementById('browser-version').textContent = "Link Version: " + linkBrowserVersion;
+            document.getElementById('build-date').textContent = "Build Date: " + buildDate;
+        }
+    </script>
+</head>
+<body onload="showSystemInfo()">
+<div class="nav-bar">
+    <h1>Link Browser</h1>
+    <div class="nav-buttons">
+        <button class="button" onclick="window.location.href='link://open/settings'">Settings</button>
+        <button class="button" onclick="window.location.href='link://open/bookmarks'">Bookmarks</button>
+        <button class="button" onclick="window.location.href='link://open/history'">History</button>
+    </div>
+</div>
+
+<h2>Prototype Build</h2>
+<p>A lightweight JavaFX-based web browser built for simplicity, performance, and a non-Google Internet experience.</p>
+<p>The browser is inspired by popular browsers such as Chrome, Opera, and Firefox. However, its primary focus is to provide a browsing experience using non-Google or big-company controlled search engines.</p>
+<p>It is written in Java using OpenJDK 23, which allows cross-platform compatibility and a modern development environment. Our mission is to prioritize user privacy and control over their browsing experience, without relying on the large corporations that dominate the web today.</p>
+<p>The build date reflects the date when the project was last compiled and updated with new features.</p>
+
+<h2>Developers:</h2>
+<ul>
+    <li><strong>Kobi401</strong> - <em>(API, Backend, and Main Browser Code)</em></li>
+    <li><strong><s>Im_Owen25</s></strong> - <em>(UI Design and Security Code)</em></li>
+</ul>
+
+<div class="button-container">
+    <button class="button" onclick="window.location.href='link://open/github'">GitHub Page</button>
+    <button class="button" onclick="showSystemInfo()">Show System Info</button>
+</div>
+
+<div class="system-info">
+    <h3>System Information</h3>
+    <p id="os-info">Operating System: Loading...</p>
+    <p id="user-agent">User-Agent: Loading...</p>
+    <p id="browser-version">Link Browser Version: Loading...</p>
+    <p id="build-date">Build Date: Loading...</p>
+</div>
+
+<div class="libraries-used">
+    <h3>Libraries Used:</h3>
+    <ul>
+        <li><strong>JavaFX</strong> - JavaFX is used to build the user interface of the Link Browser.<br>
+            License: <a href="https://openjfx.io/openjfx-docs/#license" target="_blank">GPL with Classpath Exception</a>
+        </li>
+        <li><strong>Ruffle</strong> - Ruffle is used as a Flash Player emulator.<br>
+            License: <a href="https://github.com/ruffle-rs/ruffle/blob/master/LICENSE.md" target="_blank">MIT License</a>
+        </li>
+    </ul>
+</div>
+
+<div class="license-info">
+    <h3>License Information:</h3>
+    <p>
+        Link Browser uses libraries and technologies that are open-source and abide by their respective licenses.
+        The JavaFX library is distributed under the terms of the <a href="https://openjfx.io/openjfx-docs/#license" target="_blank">GPL with Classpath Exception</a>.
+    </p>
+</div>
+
+</body>
+</html>
