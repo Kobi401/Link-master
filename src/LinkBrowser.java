@@ -19,6 +19,12 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 
+//git commit -m "first commit"
+//git add .
+//git branch -M main
+//git remote add origin https://github.com/Kobi401/Link-master.git
+//git push -u origin main
+
 //##POSSIBLE IDEAS##
 //we could do an undecorated frame and do our own window frame?
 //do we want to keep javaFX webView or make our own engine?
@@ -128,10 +134,9 @@ public class LinkBrowser extends Application {
     }
 
     /**
-     * Set up and display your main browser UI.
+     * Set up and display main browser UI.
      */
     private void showMainStage(Stage primaryStage) {
-        // You can reuse your existing code here:
         TabManager tabManager = new TabManager();
 
         BrowserView initialView = new BrowserView(tabManager);
@@ -150,7 +155,6 @@ public class LinkBrowser extends Application {
 
     /**
      * Retrieves the WebEngine instance used by the browser.
-     * Replace this method with your actual WebEngine retrieval logic.
      *
      * @return The WebEngine instance.
      */

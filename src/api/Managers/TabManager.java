@@ -62,7 +62,7 @@ public class TabManager {
             public void run() {
                 tabMemoryManager.updateMemoryUsage();
 
-                String updatedTitle = baseTitle + " (Memory: " + tabMemoryManager.getFormattedMemoryUsage() + ")";
+                String updatedTitle = baseTitle + " (Mem: " + tabMemoryManager.getFormattedMemoryUsage() + ")";
                 Platform.runLater(() -> tab.setText(updatedTitle));
             }
         }, 0, MEMORY_UPDATE_INTERVAL_MS);

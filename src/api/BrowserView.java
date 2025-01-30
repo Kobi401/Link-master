@@ -3,8 +3,6 @@ package api;
 import api.Flash.FlashHandler;
 import api.Managers.ConfigManager;
 import api.Managers.TabManager;
-import api.plugins.PluginManager;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -19,10 +17,7 @@ import ui.SearchBar;
 import ui.StatusBar;
 import ui.bookmark.BookmarkBar;
 
-import java.util.List;
 import java.util.regex.Pattern;
-
-import org.kobi401.Plugin;
 
 public class BrowserView {
 
@@ -37,7 +32,6 @@ public class BrowserView {
     private ConfigManager configManager;
     private TabManager tabManager;
     private FlashHandler flashHandler;
-    private PluginManager pluginManager;
 
     private static final Pattern URL_PATTERN = Pattern.compile(
             "^(https?|file|ftp|link)://[^\\s/$.?#].[^\\s]*$", Pattern.CASE_INSENSITIVE);
@@ -92,47 +86,6 @@ public class BrowserView {
         mainLayout.setTop(setupSearchBarContainer());
         mainLayout.setCenter(browserArea);
         mainLayout.setBottom(statusBar.getStatusBarContainer());
-    }
-
-    /**
-     * Get the list of loaded plugins.
-     */
-    public void getLoadedPlugins() {
-        List<Plugin> plugins = pluginManager.getLoadedPlugins();
-        // Convert the list to a JavaScript-friendly format (e.g., JSON)
-        StringBuilder pluginsJson = new StringBuilder("[");
-        for (int i = 0; i < plugins.size(); i++) {
-            Plugin plugin = plugins.get(i);
-            pluginsJson.append("{")
-                    .append("\"name\":\"").append(plugin.getName()).append("\",")
-                    .append("\"version\":\"").append(plugin.getVersion()).append("\",")
-                    .append("\"description\":\"").append(plugin.getDescription()).append("\",")
-                    .append("\"enabled\":").append("null").append("}");
-            if (i < plugins.size() - 1) {
-                pluginsJson.append(",");
-            }
-        }
-        pluginsJson.append("]");
-        // Call the JavaScript function to display plugins
-        Platform.runLater(() -> webEngine.executeScript("onPluginListReceived(" + pluginsJson.toString() + ");"));
-    }
-
-    /**
-     * Toggle a specific plugin's enabled state.
-     */
-    public void togglePlugin(String pluginName, boolean isEnabled) {
-        //pluginManager.setPluginEnabled(pluginName, isEnabled);
-        System.out.println("Plugin " + pluginName + " enabled: " + isEnabled);
-    }
-
-    /**
-     * Uninstall a specific plugin.
-     */
-    public void uninstallPlugin(String pluginName) {
-        //pluginManager.uninstallPlugin(pluginName);
-        System.out.println("Plugin " + pluginName + " uninstalled.");
-        // Refresh the plugin list after uninstallation
-        getLoadedPlugins();
     }
 
     /**
