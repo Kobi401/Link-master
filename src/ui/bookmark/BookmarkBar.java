@@ -11,14 +11,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.HBox;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class BookmarkBar {
-    private FlowPane bookmarkBarContainer;
+    private HBox bookmarkBarContainer;
+    private Button addBookmarkButton;
+    private Button viewBookmarksButton;
     private List<Bookmark> bookmarks;
     private BrowserView browserView; // Reference to BrowserView to handle navigation
 
@@ -29,16 +30,25 @@ public class BookmarkBar {
         loadBookmarks();
     }
 
-    /**
-     * Initializes the bookmark bar container.
-     */
     private void initializeBookmarkBar() {
-        bookmarkBarContainer = new FlowPane();
-        bookmarkBarContainer.setHgap(10);
-        bookmarkBarContainer.setVgap(5);
+        // Initialize HBox with spacing
+        bookmarkBarContainer = new HBox(10); // Spacing between nodes
         bookmarkBarContainer.setPadding(new Insets(5, 10, 5, 10));
         bookmarkBarContainer.setAlignment(Pos.CENTER_LEFT);
         bookmarkBarContainer.getStyleClass().add("bookmark-bar"); // Apply CSS style
+
+        // Create bookmark buttons
+        addBookmarkButton = new Button("Add Bookmark");
+        viewBookmarksButton = new Button("View Bookmarks");
+
+        // Set actions for buttons
+        //addBookmarkButton.setOnAction(e -> addBookmark());
+        //viewBookmarksButton.setOnAction(e -> viewBookmarks());
+
+        // Add buttons to the HBox
+        bookmarkBarContainer.getChildren().addAll(addBookmarkButton, viewBookmarksButton);
+
+        // Allow HBox to grow horizontally within its parent
         HBox.setHgrow(bookmarkBarContainer, Priority.ALWAYS);
     }
 
@@ -146,7 +156,7 @@ public class BookmarkBar {
      *
      * @return The FlowPane containing the bookmarks.
      */
-    public FlowPane getBookmarkBarContainer() {
+    public HBox getBookmarkBarContainer() {
         return bookmarkBarContainer;
     }
 

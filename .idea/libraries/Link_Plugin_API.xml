@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Link-Plugin-API">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/resources/Link-Plugin-API.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

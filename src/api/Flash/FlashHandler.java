@@ -1,9 +1,8 @@
 package api.Flash;
 
+import api.injection.JSInjectionSystem;
 import javafx.application.Platform;
-import javafx.concurrent.Worker;
 import javafx.scene.web.WebEngine;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,17 +11,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.lang.String.format;
-
 public class FlashHandler {
 
     private static final String RUFFLE_JS_RESOURCE_PATH = "/ruffle/ruffle.js";
     private static final String RUFFLE_WASM_RESOURCE_PATH = "/ruffle/ruffle.wasm";
-
     private static final Logger LOGGER = Logger.getLogger(FlashHandler.class.getName());
 
-
     private boolean isFlashEnabled;
+    private JSInjectionSystem injector; // Our JS injection helper
 
     /**
      * Constructor for FlashHandler.
@@ -52,9 +48,11 @@ public class FlashHandler {
     }
 
     /**
-     * Injects Ruffle's JavaScript and configures it to replace Flash content within the WebEngine.
+     * Initializes Ruffle injection on the provided WebEngine using JSInjectionSystem.
+     * This method adds both Ruffle’s core JavaScript (loaded from a resource)
+     * and the Flash replacement script to the injector.
      *
-     * @param webEngine The WebEngine instance where Flash content needs to be handled.
+     * @param webEngine The WebEngine instance where Flash content should be handled.
      */
     public void injectRuffleScript(WebEngine webEngine) {
         if (!isFlashEnabled) {
@@ -62,26 +60,56 @@ public class FlashHandler {
             return;
         }
 
-        // Load Ruffle's JavaScript
+        // Create the JS injection system for the given WebEngine.
+        injector = new JSInjectionSystem(webEngine);
+
+        // Load the Ruffle core JavaScript.
         String ruffleJs = loadResourceAsString(RUFFLE_JS_RESOURCE_PATH);
         if (ruffleJs == null) {
-            System.err.println("Failed to load Ruffle JavaScript.");
+            LOGGER.severe("Failed to load Ruffle JavaScript.");
             return;
         }
+        injector.addScript(ruffleJs);
+        LOGGER.info("Ruffle JavaScript injection added successfully.");
 
-        // Execute Ruffle's JavaScript to initialize RufflePlayer
-        Platform.runLater(() -> {
-            webEngine.executeScript(ruffleJs);
-            System.out.println("Ruffle JavaScript loaded successfully.");
-        });
+        // Retrieve the URL for the WASM file.
+        String wasmUrl = getWasmUrl();
+        if (wasmUrl == null) {
+            LOGGER.severe("WASM file not found. Ruffle cannot function without it.");
+            return;
+        }
+        // Escape any '%' characters in the URL for String.format.
+        String sanitizedWasmUrl = wasmUrl.replace("%", "%%");
 
-        // Listen for the page load completion to inject the Flash replacement script
-        webEngine.getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
-            if (newState == Worker.State.SUCCEEDED) {
-                // After the page has fully loaded, inject the script to replace Flash objects
-                injectFlashReplacementScript(webEngine);
-            }
-        });
+        // Build the Flash replacement script.
+        // Note: Literal '%' in '100%' must be written as '100%%' so that it prints correctly.
+        String replacementScript = String.format("""
+            (function() {
+                if (!window.RufflePlayer) {
+                    console.error('RufflePlayer is not available.');
+                    return;
+                }
+                // Configure Ruffle's WASM location
+                window.RufflePlayer.config = {
+                    wasmLocation: '%s'
+                };
+                // Initialize Ruffle
+                const ruffle = window.RufflePlayer.newest();
+                // Replace all Flash object/embed elements
+                const flashObjects = document.querySelectorAll('object[data$=".swf"], embed[src$=".swf"]');
+                flashObjects.forEach((flashObject) => {
+                    const parent = flashObject.parentElement;
+                    const rufflePlayer = ruffle.createPlayer();
+                    rufflePlayer.style.width = flashObject.width || '100%%';
+                    rufflePlayer.style.height = flashObject.height || '100%%';
+                    parent.replaceChild(rufflePlayer, flashObject);
+                    rufflePlayer.load(flashObject.data || flashObject.src);
+                });
+            })();
+            """, sanitizedWasmUrl);
+
+        injector.addScript(replacementScript);
+        LOGGER.info("Flash replacement injection script added successfully.");
     }
 
     /**
@@ -100,66 +128,10 @@ public class FlashHandler {
                 content.append(line).append("\n");
             }
             return content.toString();
-
         } catch (IOException | NullPointerException e) {
-            System.err.println("Error loading resource " + resourcePath + ": " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error loading resource " + resourcePath + ": " + e.getMessage(), e);
             return null;
         }
-    }
-
-    /**
-     * Injects the JavaScript code that replaces Flash objects with Ruffle players.
-     *
-     * @param webEngine The WebEngine instance where Flash content needs to be handled.
-     */
-    private void injectFlashReplacementScript(WebEngine webEngine) {
-        String wasmUrl = getWasmUrl();
-        if (wasmUrl == null) {
-            LOGGER.severe("WASM file not found. Ruffle cannot function without it.");
-            //showErrorDialog("WASM Loading Error", "Failed to load Flash emulator.", "Ruffle's WASM file could not be found. Flash content will not be available.");
-            return;
-        }
-
-        // Escape any '%' characters in the wasmUrl to prevent String.format issues
-        String sanitizedWasmUrl = wasmUrl.replace("%", "%%");
-
-        String replacementScript = String.format("""
-            (function() {
-                if (!window.RufflePlayer) {
-                    console.error('RufflePlayer is not available.');
-                    return;
-                }
-
-                // Configure Ruffle's WASM location
-                window.RufflePlayer.config = {
-                    wasmLocation: '%s'
-                };
-
-                // Initialize Ruffle
-                const ruffle = window.RufflePlayer.newest();
-
-                // Replace all Flash object/embed elements
-                const flashObjects = document.querySelectorAll('object[data$=".swf"], embed[src$=".swf"]');
-                flashObjects.forEach((flashObject) => {
-                    const parent = flashObject.parentElement;
-                    const rufflePlayer = ruffle.createPlayer();
-                    rufflePlayer.style.width = flashObject.width || '100%';
-                    rufflePlayer.style.height = flashObject.height || '100%';
-                    parent.replaceChild(rufflePlayer, flashObject);
-                    rufflePlayer.load(flashObject.data || flashObject.src);
-                });
-            })();
-            """, sanitizedWasmUrl);
-
-        Platform.runLater(() -> {
-            try {
-                webEngine.executeScript(replacementScript);
-                LOGGER.info("Flash replacement script injected successfully.");
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Error injecting Flash replacement script: " + e.getMessage(), e);
-                //showErrorDialog("Script Injection Error", "Failed to inject Flash replacement script.", "An error occurred while trying to replace Flash content with Ruffle.");
-            }
-        });
     }
 
     /**
@@ -171,7 +143,7 @@ public class FlashHandler {
         try {
             return getClass().getResource(RUFFLE_WASM_RESOURCE_PATH).toExternalForm();
         } catch (NullPointerException e) {
-            System.err.println("WASM file not found at path: " + RUFFLE_WASM_RESOURCE_PATH);
+            LOGGER.severe("WASM file not found at path: " + RUFFLE_WASM_RESOURCE_PATH);
             return null;
         }
     }
