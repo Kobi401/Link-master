@@ -24,7 +24,6 @@ public class BookmarkPersistence {
      * @param bookmarks List of bookmarks to save.
      */
     public static void saveBookmarks(List<Bookmark> bookmarks) {
-        // Ensure the bookmarks directory exists
         File dir = new File(BOOKMARKS_DIR);
         if (!dir.exists()) {
             boolean created = dir.mkdirs();
@@ -50,7 +49,6 @@ public class BookmarkPersistence {
     public static List<Bookmark> loadBookmarks() {
         File file = new File(BOOKMARKS_FILE);
         if (!file.exists()) {
-            // No bookmarks to load
             return new ArrayList<>();
         }
 
@@ -106,35 +104,24 @@ public class BookmarkPersistence {
             System.err.println("Invalid JSON format for bookmarks.");
             return bookmarks;
         }
-
-        // Remove the surrounding square brackets
         json = json.substring(1, json.length() - 1).trim();
-
-        // Split the JSON array into individual JSON objects
         String[] bookmarkEntries = json.split("\\},\\s*\\{");
         for (String entry : bookmarkEntries) {
-            // Clean up the entry
             entry = entry.replaceAll("^\\{", "").replaceAll("\\}$", "").trim();
-
             String name = null;
             String url = null;
-
-            // Split the entry into key-value pairs
             String[] keyValuePairs = entry.split(",\\s*");
             for (String pair : keyValuePairs) {
                 String[] keyValue = pair.split(":", 2);
                 if (keyValue.length != 2) continue;
-
                 String key = keyValue[0].trim().replaceAll("^\"|\"$", "");
                 String value = keyValue[1].trim().replaceAll("^\"|\"$", "");
-
                 if (key.equals("name")) {
                     name = unescapeJson(value);
                 } else if (key.equals("url")) {
                     url = unescapeJson(value);
                 }
             }
-
             if (name != null && url != null) {
                 bookmarks.add(new Bookmark(name, url));
             }

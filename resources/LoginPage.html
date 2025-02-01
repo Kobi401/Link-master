@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LinkBrowser Login</title>
+    <style>
+        /* Global Styles */
+        body {
+          margin: 0;
+          padding: 0;
+          background: #121212;
+          font-family: 'Roboto', sans-serif;
+          color: #e0e0e0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+        }
+        .container {
+          background: #1e1e1e;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(66, 133, 244, 0.6);
+          width: 400px;
+          overflow: hidden;
+          transition: transform 0.3s ease;
+        }
+        .tabs {
+          display: flex;
+          background: #202020;
+        }
+        .tab {
+          flex: 1;
+          text-align: center;
+          padding: 12px 0;
+          cursor: pointer;
+          color: #888;
+          transition: color 0.3s ease, background 0.3s ease;
+        }
+        .tab.active {
+          background: #121212;
+          color: #4285f4;
+          font-weight: bold;
+        }
+        .form-container {
+          padding: 20px;
+          display: none;
+          animation: fadeIn 0.5s;
+        }
+        .form-container.active {
+          display: block;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        form label {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        form input[type="text"],
+        form input[type="password"] {
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 15px;
+          border: none;
+          border-radius: 5px;
+          font-size: 16px;
+          background: #2a2a2a;
+          color: #e0e0e0;
+        }
+        form button {
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 10px;
+          border: none;
+          border-radius: 5px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background 0.3s ease;
+        }
+        form button:hover {
+          opacity: 0.9;
+        }
+        .btn-login {
+          background: #4285f4;
+          color: #ffffff;
+        }
+        .btn-create {
+          background: #34a853;
+          color: #ffffff;
+        }
+        .btn-guest {
+          background: #fbbc05;
+          color: #000000;
+        }
+        .toggle-link {
+          display: block;
+          text-align: center;
+          margin-top: 10px;
+          color: #4285f4;
+          cursor: pointer;
+          text-decoration: underline;
+          font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="tabs">
+        <div class="tab active" id="tab-login">Login</div>
+        <div class="tab" id="tab-register">Create Account</div>
+    </div>
+    <div class="form-container active" id="login-form-container">
+        <form id="loginForm">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" placeholder="Enter your username" required>
+
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="Enter your password" required>
+
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        <button id="guestLogin" class="btn-guest">Continue as Guest</button>
+        <span class="toggle-link" id="to-register">Don't have an account? Create one</span>
+    </div>
+    <div class="form-container" id="register-form-container">
+        <form id="registerForm">
+            <label for="register-username">Username</label>
+            <input type="text" id="register-username" placeholder="Choose a username" required>
+
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" placeholder="Choose a password" required>
+
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" placeholder="Re-enter your password" required>
+
+            <button type="submit" class="btn-create">Create Account</button>
+        </form>
+        <span class="toggle-link" id="to-login">Already have an account? Login</span>
+    </div>
+</div>
+<script>
+    // --- Tab Switching Logic ---
+    var tabLogin = document.getElementById('tab-login');
+    var tabRegister = document.getElementById('tab-register');
+    var loginFormContainer = document.getElementById('login-form-container');
+    var registerFormContainer = document.getElementById('register-form-container');
+
+    tabLogin.addEventListener('click', function() {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      loginFormContainer.classList.add('active');
+      registerFormContainer.classList.remove('active');
+    });
+
+    tabRegister.addEventListener('click', function() {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      registerFormContainer.classList.add('active');
+      loginFormContainer.classList.remove('active');
+    });
+
+    // Toggle links for switching views.
+    document.getElementById('to-register').addEventListener('click', function() {
+      tabRegister.click();
+    });
+    document.getElementById('to-login').addEventListener('click', function() {
+      tabLogin.click();
+    });
+
+    // --- Event Handlers for Login / Create Account / Guest Login ---
+
+    // When the login form is submitted:
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('login-username').value;
+      var password = document.getElementById('login-password').value;
+      if (window.javaUser && typeof window.javaUser.login === 'function') {
+          var success = window.javaUser.login(username, password);
+          if (success) {
+              alert("Login successful!");
+              // Optionally, redirect to main page.
+          } else {
+              alert("Login failed. Please check your credentials.");
+          }
+      } else {
+          alert("Java bridge not available!");
+      }
+    });
+
+    // When the registration form is submitted:
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('register-username').value;
+      var password = document.getElementById('register-password').value;
+      var confirmPassword = document.getElementById('register-confirm').value;
+      if (password !== confirmPassword) {
+          alert("Passwords do not match. Please try again.");
+          return;
+      }
+      if (window.javaUser && typeof window.javaUser.createAccount === 'function') {
+          window.javaUser.createAccount(username, password);
+          alert("Account created successfully! Please log in.");
+          // Switch back to the login view.
+          tabLogin.click();
+      } else {
+          alert("Java bridge not available!");
+      }
+    });
+
+    // When the Guest Login button is clicked:
+    document.getElementById('guestLogin').addEventListener('click', function() {
+      if (window.javaUser && typeof window.javaUser.guestLogin === 'function') {
+          window.javaUser.guestLogin();
+          alert("Logged in as Guest.");
+      } else {
+          alert("Java bridge not available!");
+      }
+    });
+</script>
+</body>
+</html>

@@ -21,7 +21,7 @@ public class BookmarkBar {
     private Button addBookmarkButton;
     private Button viewBookmarksButton;
     private List<Bookmark> bookmarks;
-    private BrowserView browserView; // Reference to BrowserView to handle navigation
+    private BrowserView browserView;
 
     public BookmarkBar(BrowserView browserView) {
         this.browserView = browserView;
@@ -31,24 +31,16 @@ public class BookmarkBar {
     }
 
     private void initializeBookmarkBar() {
-        // Initialize HBox with spacing
-        bookmarkBarContainer = new HBox(10); // Spacing between nodes
+        bookmarkBarContainer = new HBox(10);
         bookmarkBarContainer.setPadding(new Insets(5, 10, 5, 10));
         bookmarkBarContainer.setAlignment(Pos.CENTER_LEFT);
-        bookmarkBarContainer.getStyleClass().add("bookmark-bar"); // Apply CSS style
+        bookmarkBarContainer.getStyleClass().add("bookmark-bar");
 
-        // Create bookmark buttons
         addBookmarkButton = new Button("Add Bookmark");
         viewBookmarksButton = new Button("View Bookmarks");
 
-        // Set actions for buttons
-        //addBookmarkButton.setOnAction(e -> addBookmark());
-        //viewBookmarksButton.setOnAction(e -> viewBookmarks());
-
-        // Add buttons to the HBox
         bookmarkBarContainer.getChildren().addAll(addBookmarkButton, viewBookmarksButton);
 
-        // Allow HBox to grow horizontally within its parent
         HBox.setHgrow(bookmarkBarContainer, Priority.ALWAYS);
     }
 
@@ -105,7 +97,6 @@ public class BookmarkBar {
         faviconView.setSmooth(true);
         faviconView.setCache(true);
 
-        // Label for bookmark name
         javafx.scene.control.Label nameLabel = new javafx.scene.control.Label(bookmark.getName());
         nameLabel.getStyleClass().add("bookmark-label"); // Apply CSS style
         nameLabel.setStyle("-fx-text-fill: #333333; -fx-font-size: 12px;");
@@ -114,7 +105,6 @@ public class BookmarkBar {
         content.setAlignment(Pos.CENTER_LEFT);
         bookmarkButton.setGraphic(content);
 
-        // Fetch favicon asynchronously
         FaviconFetcher.fetchFaviconTask(bookmark.getUrl()).setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
@@ -126,10 +116,6 @@ public class BookmarkBar {
         faviconThread.setDaemon(true);
         faviconThread.start();
 
-        // Handle button click to navigate to the website
-        //bookmarkButton.setOnAction(e -> browserView.navigateTo(bookmark.getUrl()));
-
-        // Optional: Add right-click context menu for removing bookmarks
         javafx.scene.control.ContextMenu contextMenu = new javafx.scene.control.ContextMenu();
         javafx.scene.control.MenuItem removeItem = new javafx.scene.control.MenuItem("Remove Bookmark");
         removeItem.setOnAction(e -> removeBookmark(bookmark.getUrl()));

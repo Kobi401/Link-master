@@ -2,6 +2,7 @@ package api.Flash;
 
 import api.injection.JSInjectionSystem;
 import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.scene.web.WebEngine;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,7 +19,12 @@ public class FlashHandler {
     private static final Logger LOGGER = Logger.getLogger(FlashHandler.class.getName());
 
     private boolean isFlashEnabled;
-    private JSInjectionSystem injector; // Our JS injection helper
+    private JSInjectionSystem injector; // JS injection helper
+
+    // Additional configuration options for Ruffle
+    private boolean debugMode = false;
+    private String additionalConfig = "{}"; // A JSON string with additional configuration (if desired)
+    private String ruffleContainerId = "ruffle-container"; // ID for an optional container div
 
     /**
      * Constructor for FlashHandler.
@@ -30,12 +36,30 @@ public class FlashHandler {
     }
 
     /**
-     * Sets the Flash/Ruffle enabled state.
+     * Enables or disables Flash/Ruffle.
      *
-     * @param isFlashEnabled True to enable Flash/Ruffle, false to disable.
+     * @param isFlashEnabled True to enable, false to disable.
      */
     public void setFlashEnabled(boolean isFlashEnabled) {
         this.isFlashEnabled = isFlashEnabled;
+    }
+
+    /**
+     * Sets an optional debug mode flag.
+     *
+     * @param debugMode True to enable debug logging for Ruffle.
+     */
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
+    }
+
+    /**
+     * Sets additional Ruffle configuration as a JSON string.
+     *
+     * @param additionalConfig Additional configuration (JSON format).
+     */
+    public void setAdditionalConfig(String additionalConfig) {
+        this.additionalConfig = additionalConfig;
     }
 
     /**
@@ -48,75 +72,95 @@ public class FlashHandler {
     }
 
     /**
-     * Initializes Ruffle injection on the provided WebEngine using JSInjectionSystem.
-     * This method adds both Ruffle’s core JavaScript (loaded from a resource)
-     * and the Flash replacement script to the injector.
+     * Injects Ruffle scripts into the given WebEngine.
+     * The injection is deferred until the WebEngine finishes loading the page.
      *
      * @param webEngine The WebEngine instance where Flash content should be handled.
      */
     public void injectRuffleScript(WebEngine webEngine) {
         if (!isFlashEnabled) {
-            System.out.println("Flash is disabled. Skipping Ruffle injection.");
+            LOGGER.info("Flash is disabled. Skipping Ruffle injection.");
             return;
         }
 
-        // Create the JS injection system for the given WebEngine.
         injector = new JSInjectionSystem(webEngine);
 
-        // Load the Ruffle core JavaScript.
-        String ruffleJs = loadResourceAsString(RUFFLE_JS_RESOURCE_PATH);
-        if (ruffleJs == null) {
-            LOGGER.severe("Failed to load Ruffle JavaScript.");
-            return;
-        }
-        injector.addScript(ruffleJs);
-        LOGGER.info("Ruffle JavaScript injection added successfully.");
-
-        // Retrieve the URL for the WASM file.
-        String wasmUrl = getWasmUrl();
-        if (wasmUrl == null) {
-            LOGGER.severe("WASM file not found. Ruffle cannot function without it.");
-            return;
-        }
-        // Escape any '%' characters in the URL for String.format.
-        String sanitizedWasmUrl = wasmUrl.replace("%", "%%");
-
-        // Build the Flash replacement script.
-        // Note: Literal '%' in '100%' must be written as '100%%' so that it prints correctly.
-        String replacementScript = String.format("""
-            (function() {
-                if (!window.RufflePlayer) {
-                    console.error('RufflePlayer is not available.');
+        // Wait for the page to finish loading before injecting Ruffle.
+        webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+            if (newState == Worker.State.SUCCEEDED) {
+                // Load and inject the core Ruffle JavaScript.
+                String ruffleJs = loadResourceAsString(RUFFLE_JS_RESOURCE_PATH);
+                if (ruffleJs == null) {
+                    LOGGER.severe("Failed to load Ruffle JavaScript.");
                     return;
                 }
-                // Configure Ruffle's WASM location
-                window.RufflePlayer.config = {
-                    wasmLocation: '%s'
-                };
-                // Initialize Ruffle
-                const ruffle = window.RufflePlayer.newest();
-                // Replace all Flash object/embed elements
-                const flashObjects = document.querySelectorAll('object[data$=".swf"], embed[src$=".swf"]');
-                flashObjects.forEach((flashObject) => {
-                    const parent = flashObject.parentElement;
-                    const rufflePlayer = ruffle.createPlayer();
-                    rufflePlayer.style.width = flashObject.width || '100%%';
-                    rufflePlayer.style.height = flashObject.height || '100%%';
-                    parent.replaceChild(rufflePlayer, flashObject);
-                    rufflePlayer.load(flashObject.data || flashObject.src);
-                });
-            })();
-            """, sanitizedWasmUrl);
+                injector.addScript(ruffleJs);
+                LOGGER.info("Ruffle core JavaScript injected successfully.");
 
-        injector.addScript(replacementScript);
-        LOGGER.info("Flash replacement injection script added successfully.");
+                // Retrieve and sanitize the WASM URL.
+                String wasmUrl = getWasmUrl();
+                if (wasmUrl == null) {
+                    LOGGER.severe("WASM file not found. Ruffle cannot function without it.");
+                    return;
+                }
+                String sanitizedWasmUrl = wasmUrl.replace("%", "%%");
+
+                String replacementScript = String.format("""
+    (function() {
+        if (!window.RufflePlayer) {
+            console.error('RufflePlayer is not available.');
+            return;
+        }
+        // Set debug mode if enabled.
+        window.RufflePlayer.debug = %b;
+        
+        // Merge additional configuration (passed as JSON) with the default config.
+        var additionalConfig = %s;
+        window.RufflePlayer.config = Object.assign({
+            wasmLocation: '%s'
+        }, additionalConfig);
+        
+        // Ensure there is a dedicated container for Ruffle if desired.
+        var containerId = '%s';
+        var container = document.getElementById(containerId);
+        if (!container) {
+            container = document.createElement('div');
+            container.id = containerId;
+            // Append container to the beginning of the body.
+            document.body.insertBefore(container, document.body.firstChild);
+        }
+        
+        // Initialize Ruffle.
+        var ruffle = window.RufflePlayer.newest();
+        
+        // Find all Flash objects (<object> and <embed> with .swf) and replace them.
+        var flashElements = document.querySelectorAll("object[data$='.swf'], embed[src$='.swf']");
+        flashElements.forEach(function(element) {
+            var parent = element.parentElement;
+            if (!parent) return;
+            var rufflePlayer = ruffle.createPlayer();
+            // Set dimensions (fallback to 100%% if not specified)
+            rufflePlayer.style.width = element.width || "100%%";
+            rufflePlayer.style.height = element.height || "100%%";
+            parent.replaceChild(rufflePlayer, element);
+            rufflePlayer.load(element.data || element.src);
+        });
+        
+        console.info("Ruffle flash emulation initialized successfully.");
+    })();
+    """, debugMode, additionalConfig, sanitizedWasmUrl, ruffleContainerId);
+
+                injector.addScript(replacementScript);
+                LOGGER.info("Ruffle replacement script injected successfully.");
+            }
+        });
     }
 
     /**
-     * Loads a resource file as a String.
+     * Loads a resource file from the classpath as a String.
      *
      * @param resourcePath The path to the resource file.
-     * @return The content of the resource file as a String, or null if an error occurs.
+     * @return The content of the resource as a String, or null if not found.
      */
     private String loadResourceAsString(String resourcePath) {
         try (InputStream is = getClass().getResourceAsStream(resourcePath);
@@ -137,7 +181,7 @@ public class FlashHandler {
     /**
      * Retrieves the URL of the Ruffle WASM file.
      *
-     * @return The URL of the Ruffle WASM file as a String, or null if not found.
+     * @return The URL of the WASM file as a String, or null if not found.
      */
     private String getWasmUrl() {
         try {

@@ -23,11 +23,9 @@ public class FaviconFetcher {
                     return new Image(faviconUrl, 16, 16, true, true, true);
                 } catch (MalformedURLException e) {
                     System.err.println("Invalid URL: " + websiteUrl);
-                    // Return a default favicon if URL is invalid
                     return new Image(FaviconFetcher.class.getResourceAsStream("/Images/default_favicon.png"));
                 } catch (Exception e) {
                     System.err.println("Failed to fetch favicon for: " + websiteUrl);
-                    // Return a default favicon in case of any failure
                     return new Image(FaviconFetcher.class.getResourceAsStream("/Images/default_favicon.png"));
                 }
             }

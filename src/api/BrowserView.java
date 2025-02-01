@@ -3,6 +3,8 @@ package api;
 import api.Flash.FlashHandler;
 import api.Managers.ConfigManager;
 import api.Managers.TabManager;
+import api.Managers.UserManager;
+import api.Managers.UserManagerBridge;
 import api.download.DownloadTask;
 import api.injection.JSInjectionSystem;
 import javafx.application.Platform;
@@ -59,7 +61,7 @@ public class BrowserView {
         this.tabManager = tabManager;
         initializeComponents();
         configureWebEngine();
-        createMainMenuButton();
+        //createMainMenuButton();
         createEventHandlers();
         loadPage("https://www.google.com");
     }
@@ -83,14 +85,6 @@ public class BrowserView {
     }
 
     private void initializeComponents() {
-        //searchBar = new SearchBar();
-        //bookmarkBar = new BookmarkBar(this);
-        //statusBar = new StatusBar();
-
-        //searchBar.getBackButton().setOnAction(e -> goBack());
-        //searchBar.getForwardButton().setOnAction(e -> goForward());
-        //searchBar.getRefreshButton().setOnAction(e -> refreshPage());
-
         configManager = new ConfigManager();
         flashHandler = new FlashHandler(configManager.isFlashEnabled());
 
@@ -98,29 +92,27 @@ public class BrowserView {
         webEngine = browserArea.getEngine();
         webEngine.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) LinkEngine/1.0 LinkBrowser/Prototype rv:1.0 Gecko/20230101 Safari/537.36");
         browserArea.setContextMenuEnabled(false);
+
         new JavaScriptUIInjector(webEngine);
 
-        //mainLayout = new BorderPane();
-        //mainLayout.setTop(setupSearchBarContainer());
-        //mainLayout.setTop(setupTopContainer());
-        //mainLayout.setCenter(browserArea);
-        //mainLayout.setBottom(statusBar.getStatusBarContainer());
+        webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+            if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                JSObject window = (JSObject) webEngine.executeScript("window");
+                window.setMember("javaUser", new UserManagerBridge(webEngine));
+                injectContextMenuHandler();
+            }
+        });
+
+        UserManager.initializeUser(webEngine);
 
         downloadOverlay = new VBox(5);
         downloadOverlay.setAlignment(Pos.TOP_RIGHT);
         downloadOverlay.setPadding(new Insets(10));
-        downloadOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4); "
-                + "-fx-background-radius: 5;");
+        downloadOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4); -fx-background-radius: 5;");
 
         StackPane centerStack = new StackPane(browserArea);
         centerStack.getChildren().add(downloadOverlay);
         StackPane.setAlignment(downloadOverlay, Pos.TOP_RIGHT);
-
-        webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
-            if (newState == Worker.State.SUCCEEDED) {
-                injectContextMenuHandler();
-            }
-        });
 
         webEngine.setOnError(event -> {
             System.out.println("WebEngine error: " + event.getMessage());
@@ -128,9 +120,8 @@ public class BrowserView {
         webEngine.setOnAlert(event -> {
             System.out.println("WebEngine alert: " + event.getData());
         });
-
-        //mainLayout.setCenter(centerStack);
     }
+
 
     //--------------------------------Context Menu----------------------------------------
     //called after the page loads (on SUCCEEDED)
@@ -257,7 +248,6 @@ public class BrowserView {
         if (s == null) {
             return "";
         }
-        // Escape backslashes and single quotes.
         return s.replace("\\", "\\\\").replace("'", "\\'");
     }
 
@@ -273,8 +263,16 @@ public class BrowserView {
                 webEngine.getLoadWorker().cancel();
             } else {
                 String escapedValue = escapeForJS(newValue);
-                webEngine.executeScript("window.updateStatus('Loading: " + escapedValue + "');");
-                webEngine.executeScript("document.getElementById('search-bar').value = '" + escapedValue + "';");
+                webEngine.executeScript(
+                        "if(typeof window.updateStatus === 'function') { " +
+                                "    window.updateStatus('Loading: " + escapedValue + "'); " +
+                                "}"
+                );
+                webEngine.executeScript(
+                        "if(document.getElementById('search-bar')) { " +
+                                "    document.getElementById('search-bar').value = '" + escapedValue + "'; " +
+                                "}"
+                );
             }
         });
     }

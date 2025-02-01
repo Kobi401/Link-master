@@ -51,15 +51,12 @@ public class PluginManager {
                 return;
             }
         }
-
         File[] jarFiles = pluginsDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".jar"));
         if (jarFiles == null || jarFiles.length == 0) {
             messageConsumer.accept("No plugins found in the plugins directory.");
             return;
         }
-
         messageConsumer.accept("Found " + jarFiles.length + " plugin(s). Loading...");
-
         for (File jar : jarFiles) {
             messageConsumer.accept("Loading plugin from: " + jar.getName());
             try {
@@ -68,7 +65,6 @@ public class PluginManager {
                 messageConsumer.accept("Failed to load plugin from " + jar.getName() + ": " + e.getMessage());
             }
         }
-
         messageConsumer.accept("All plugins loaded successfully.");
     }
 
@@ -81,7 +77,6 @@ public class PluginManager {
     private void loadPluginFromJar(File jarFile) throws IOException {
         JarFile jar = new JarFile(jarFile);
         Enumeration<JarEntry> entries = jar.entries();
-
         URL[] urls = { new URL("jar:file:" + jarFile.getAbsolutePath() + "!/") };
         try (URLClassLoader cl = URLClassLoader.newInstance(urls)) {
             while (entries.hasMoreElements()) {
@@ -89,7 +84,6 @@ public class PluginManager {
                 if(je.isDirectory() || !je.getName().endsWith(".class")){
                     continue;
                 }
-                // -6 because of .class
                 String className = je.getName().substring(0, je.getName().length()-6);
                 className = className.replace('/', '.');
                 try {
