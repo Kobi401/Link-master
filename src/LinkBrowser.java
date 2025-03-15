@@ -4,10 +4,12 @@ import api.plugins.PluginManager;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -17,6 +19,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 //git commit -m "first commit"
@@ -50,9 +53,13 @@ public class LinkBrowser extends Application {
     private Stage splashStage;
     private Label pluginStatusLabel;
     private PluginManager pluginManager;
+    private String buildType;
 
     @Override
     public void start(Stage primaryStage) {
+        System.setProperty("prism.maxvram", "8G");
+
+        buildType = System.getProperty("build.type", "STABLE").toUpperCase(Locale.ROOT);
         showSplashScreen();
         Duration minSplashDuration = Duration.seconds(3);
 
@@ -86,51 +93,55 @@ public class LinkBrowser extends Application {
         });
     }
 
-    /**
-     * Displays the splash screen.
-     */
     private void showSplashScreen() {
         splashStage = new Stage();
-        splashStage.initStyle(StageStyle.UNDECORATED);
+        splashStage.initStyle(StageStyle.TRANSPARENT);
 
-        ImageView imageView = new ImageView(
-                new Image(getClass().getResourceAsStream("Images/LinkLogo_Big.png"))
+        StackPane root = new StackPane();
+        root.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #ffffff, #e0e0e0);" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0, 0, 2);"
         );
-        imageView.setFitWidth(100);
-        imageView.setPreserveRatio(true);
 
-        Label welcomeLabel = new Label("Welcome to LinkBrowser!");
-        welcomeLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333333;");
+        VBox splashContent = new VBox(20);
+        splashContent.setAlignment(Pos.CENTER);
+        splashContent.setPadding(new Insets(30));
 
-        Label nameLabel = new Label("");
-        nameLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        ImageView logo = new ImageView(new Image(getClass().getResourceAsStream("Images/LinkLogo_Big.png")));
+        logo.setFitWidth(120);
+        logo.setPreserveRatio(true);
 
-        Label versionLabel = new Label("Version 1.0");
-        versionLabel.setStyle("-fx-font-size: 14px;");
+        Label welcomeLabel = new Label("Welcome to Link");
+        welcomeLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;");
 
-        ProgressBar loadingBar = new ProgressBar();
-        loadingBar.setProgress(-1.0);
-        loadingBar.setPrefWidth(200);
+        Label versionLabel = new Label("Version 1.3-classic (" + buildType + ")");
+        versionLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #555555;");
+
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        progressIndicator.setPrefSize(50, 50);
 
         pluginStatusLabel = new Label("Loading plugins...");
         pluginStatusLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #333333;");
 
-        Label devLabel = new Label("By Kobi401");
-        devLabel.setStyle("-fx-font-size: 14px;");
+        Label devLabel = new Label("Developed by Kobi401");
+        devLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666666;");
 
-        VBox splashContent = new VBox(15, imageView, welcomeLabel, nameLabel, versionLabel, loadingBar, pluginStatusLabel, devLabel);
-        splashContent.setAlignment(Pos.CENTER);
-        splashContent.setStyle("-fx-background-color: white; -fx-padding: 30;");
+        splashContent.getChildren().addAll(logo, welcomeLabel, versionLabel, progressIndicator, pluginStatusLabel, devLabel);
+        root.getChildren().add(splashContent);
 
-        FadeTransition welcomeFadeIn = new FadeTransition(Duration.seconds(2), welcomeLabel);
-        welcomeFadeIn.setFromValue(0.0);
-        welcomeFadeIn.setToValue(1.0);
-        welcomeFadeIn.play();
+        Scene splashScene = new Scene(root, 400, 500);
+        splashScene.setFill(null);
 
-        Scene splashScene = new Scene(splashContent, 350, 400);
-        splashStage.setTitle("Loading...");
         splashStage.setScene(splashScene);
+        splashStage.setTitle("Loading...");
         splashStage.show();
+
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), root);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeIn.play();
     }
 
     /**
@@ -166,8 +177,6 @@ public class LinkBrowser extends Application {
         stage.setResizable(true);
         stage.setMinWidth(800);
         stage.setMinHeight(600);
-
-        // Force a small GC each time the user resizes, purely as an example
         stage.widthProperty().addListener((obs, oldVal, newVal) -> System.gc());
         stage.heightProperty().addListener((obs, oldVal, newVal) -> System.gc());
     }

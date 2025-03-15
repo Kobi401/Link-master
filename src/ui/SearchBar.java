@@ -165,7 +165,6 @@ public class SearchBar {
         return button;
     }
 
-    // Getters for external access
     public TextField getSearchField() {
         return searchField;
     }
