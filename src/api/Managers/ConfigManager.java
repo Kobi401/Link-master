@@ -16,11 +16,25 @@ import java.util.Properties;
 public class ConfigManager {
 
     private static final String USER_HOME = System.getProperty("user.home");
-    private static final String CONFIG_DIRECTORY = USER_HOME + "\\AppData\\Local\\LinkBrowser\\UserSettings";
-    private static final String CONFIG_FILE = CONFIG_DIRECTORY + "\\config.properties";
+    private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
+    private static final String CONFIG_DIRECTORY;
+    private static final String CONFIG_FILE;
 
     private Properties properties;
     private EncryptionManager encryptionManager;
+
+    // Static block to set platform-dependent paths
+    static {
+        if (OS_NAME.contains("win")) {
+            CONFIG_DIRECTORY = USER_HOME + "\\AppData\\Local\\LinkBrowser\\UserSettings";
+            CONFIG_FILE = CONFIG_DIRECTORY + "\\config.properties";
+        } else if (OS_NAME.contains("nix") || OS_NAME.contains("nux") || OS_NAME.contains("mac")) {
+            CONFIG_DIRECTORY = USER_HOME + "/.config/LinkBrowser/UserSettings";
+            CONFIG_FILE = CONFIG_DIRECTORY + "/config.properties";
+        } else {
+            throw new UnsupportedOperationException("Unsupported operating system");
+        }
+    }
 
     /**
      * Initializes the configuration manager and loads properties securely.
@@ -29,11 +43,13 @@ public class ConfigManager {
         properties = new Properties();
         encryptionManager = new EncryptionManager();
 
+        // Create the config directory if it doesn't exist
         File configDir = new File(CONFIG_DIRECTORY);
         if (!configDir.exists()) {
             configDir.mkdirs();
         }
 
+        // Create the config file if it doesn't exist
         File configFile = new File(CONFIG_FILE);
         if (!configFile.exists()) {
             try {

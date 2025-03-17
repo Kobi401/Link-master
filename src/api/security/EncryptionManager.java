@@ -18,7 +18,17 @@ public class EncryptionManager {
 
     private static final String ENCRYPTION_ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES";
-    private static final String SECRET_KEY_FILE = System.getProperty("user.home") + "\\AppData\\Local\\LinkBrowser\\LinkService(x32).dat";
+
+    private static final String SECRET_KEY_FILE;
+    static {
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.contains("win")) {
+            SECRET_KEY_FILE = System.getProperty("user.home") + "\\AppData\\Local\\LinkBrowser\\LinkService(x32).dat";
+        } else {
+            SECRET_KEY_FILE = System.getProperty("user.home") + "/.config/LinkBrowser/LinkService.dat";
+        }
+    }
+
     private SecretKey secretKey;
 
     /**

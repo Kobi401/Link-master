@@ -48,12 +48,16 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+//For users that want to run this in an ide
+//--module-path "/home/kobi401/IdeaProjects/Link-master/JavaFXLinux/lib" --add-modules javafx.controls,javafx.fxml,javafx.web -Dprism.verbose=true -Dprism.order=es2 -Dprism.forceGPU=true -Djavafx.platform=gtk -Djava.library.path="/home/kobi401/IdeaProjects/Link-master/JavaFXLinux/lib"
+
 public class LinkBrowser extends Application {
 
     private Stage splashStage;
     private Label pluginStatusLabel;
     private PluginManager pluginManager;
     private String buildType;
+    public String detectedOS;
 
     @Override
     public void start(Stage primaryStage) {
@@ -115,7 +119,10 @@ public class LinkBrowser extends Application {
         Label welcomeLabel = new Label("Welcome to Link");
         welcomeLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;");
 
-        Label versionLabel = new Label("Version 1.3-classic (" + buildType + ")");
+        String osName = System.getProperty("os.name");
+        this.detectedOS = osName;
+
+        Label versionLabel = new Label("Version 1.3-" + osName + " (" + buildType + ")");
         versionLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #555555;");
 
         ProgressIndicator progressIndicator = new ProgressIndicator();
@@ -157,7 +164,7 @@ public class LinkBrowser extends Application {
         root.setCenter(tabManager.getTabPane());
 
         Scene scene = new Scene(root, 1024, 768);
-        primaryStage.setTitle("Link Browser");
+        primaryStage.setTitle("Link (Linux)");
         primaryStage.setScene(scene);
 
         primaryStage.show();
